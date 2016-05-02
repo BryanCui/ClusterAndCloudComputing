@@ -77,22 +77,25 @@ class StdOutListener(StreamListener):
 
 if __name__ == '__main__':
     while True:
-        for piece in keys:
-            #Variables that contains the user credentials to access Twitter API 
-            access_token = piece["access_token"]
-            access_token_secret = piece["access_token_secret"]
-            consumer_key = piece["consumer_key"]
-            consumer_secret = piece["consumer_secret"]
-            #This handles Twitter authetification and the connection to Twitter Streaming API
-            l = StdOutListener()
-            auth = OAuthHandler(consumer_key, consumer_secret)
-            auth.set_access_token(access_token, access_token_secret)
-            stream = Stream(auth, l)
+        try:
+            for piece in keys:
+                #Variables that contains the user credentials to access Twitter API 
+                access_token = piece["access_token"]
+                access_token_secret = piece["access_token_secret"]
+                consumer_key = piece["consumer_key"]
+                consumer_secret = piece["consumer_secret"]
+                #This handles Twitter authetification and the connection to Twitter Streaming API
+                l = StdOutListener()
+                auth = OAuthHandler(consumer_key, consumer_secret)
+                auth.set_access_token(access_token, access_token_secret)
+                stream = Stream(auth, l)
 
-            #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
-            #stream.filter(track=['python', 'javascript', 'ruby'])
-            # get geo box http://boundingbox.klokantech.com/  -csv raw
-            print("start")
-            stream.filter(locations=[-180,-90,180,90])
-            print("end")
-            #stream.filter(locations=[105.3756965399,-44.6530241598,164.35546875,-10.1851874093])
+                #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
+                #stream.filter(track=['python', 'javascript', 'ruby'])
+                # get geo box http://boundingbox.klokantech.com/  -csv raw
+                print("start")
+                stream.filter(locations=[-180,-90,180,90])
+                #stream.filter(locations=[105.3756965399,-44.6530241598,164.35546875,-10.1851874093])
+                print("end")
+        except:
+            continue
