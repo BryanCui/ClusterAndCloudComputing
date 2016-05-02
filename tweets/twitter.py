@@ -5,20 +5,25 @@ from tweepy import Stream
 import couchdb
 import sys
 import time
+import json
 
-#Variables that contains the user credentials to access Twitter API 
-access_token = "540579376-1f65ZblgI5wIBb3fH6IU4XJ5jVkvqtnyPkMRE9Ad"
-access_token_secret = "e2UVGhw5vrYdD7ShQFQ49yG2QbxdtfqYIAVyhaIv8INtL"
-consumer_key = "t6MwuVuO0tL6POvNtY8wDVuyY"
-consumer_secret = "fpGOkk1BmJVUPhKSOBtbnv69RnSySH0axozOiWHN4x231ozNAi"
+if len(sys.argv) < 2:
+    print("Usage: python twitter.py path-to-key-file")
+    sys.exit(-1)
+path = sys.argv[1]
 
-couch = couchdb.Server('http://115.146.89.147:5984/')
-dbname = 'comp90024'
+with open(path) as rawJson:
+    conf = json.load(rawJson)
+
+couch = couchdb.Server(conf["database"]["serverAddr"])
+dbname = conf["database"]["dbName"]
+keys = conf["keys"]
+
 try:
     db = couch[dbname]
-    print "opened",dbname
+    print("opened",dbname)
 except couchdb.ResourceNotFound:
-    print "creating db",dbname
+    print("creating db",dbname)
     db = couch.create(dbname)
 
 #This is a basic listener that just prints received tweets to stdout.
@@ -35,7 +40,7 @@ class StdOutListener(StreamListener):
     def on_status(self, status):
         global db # couchdb (global)
         try:
-            print status.created_at
+            print(status.created_at)
             # skip retweets
             if status.retweet_count:
                 return True
@@ -57,30 +62,37 @@ class StdOutListener(StreamListener):
             results['retweet_count'] = status.retweet_count
             results['retweeted'] = status.retweeted
             db.save(results)
-            print results
-        except Exception, e:
-            print sys.stderr, 'Encountered Exception:', e#.get_trace()
+            print(results)
+        except Exception as e:
+            print(sys.stderr, 'Encountered Exception:', e)#.get_trace()
             pass
-
         return True
 
     def on_error(self, status):
-        print status
+        print(status)
         if status == 420:
             #returning False in on_data disconnects the stream
             return False
 
 
 if __name__ == '__main__':
+    while True:
+        for piece in keys:
+            #Variables that contains the user credentials to access Twitter API 
+            access_token = piece["access_token"]
+            access_token_secret = piece["access_token_secret"]
+            consumer_key = piece["consumer_key"]
+            consumer_secret = piece["consumer_secret"]
+            #This handles Twitter authetification and the connection to Twitter Streaming API
+            l = StdOutListener()
+            auth = OAuthHandler(consumer_key, consumer_secret)
+            auth.set_access_token(access_token, access_token_secret)
+            stream = Stream(auth, l)
 
-    #This handles Twitter authetification and the connection to Twitter Streaming API
-    l = StdOutListener()
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-    stream = Stream(auth, l)
-
-    #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
-    #stream.filter(track=['python', 'javascript', 'ruby'])
-    # get geo box http://boundingbox.klokantech.com/  -csv raw
-    stream.filter(locations=[-180,-90,180,90])
-    #stream.filter(locations=[105.3756965399,-44.6530241598,164.35546875,-10.1851874093])
+            #This line filter Twitter Streams to capture data by the keywords: 'python', 'javascript', 'ruby'
+            #stream.filter(track=['python', 'javascript', 'ruby'])
+            # get geo box http://boundingbox.klokantech.com/  -csv raw
+            print("start")
+            stream.filter(locations=[-180,-90,180,90])
+            print("end")
+            #stream.filter(locations=[105.3756965399,-44.6530241598,164.35546875,-10.1851874093])
