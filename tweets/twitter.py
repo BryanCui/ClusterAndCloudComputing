@@ -40,7 +40,7 @@ class StdOutListener(StreamListener):
     def on_status(self, status):
         global db # couchdb (global)
         try:
-            print(status.created_at)
+            #print(status.created_at)
             # skip retweets
             if status.retweet_count:
                 return True
@@ -62,7 +62,7 @@ class StdOutListener(StreamListener):
             results['retweet_count'] = status.retweet_count
             results['retweeted'] = status.retweeted
             db.save(results)
-            print(results)
+            #print(results)
         except Exception as e:
             print(sys.stderr, 'Encountered Exception:', e)#.get_trace()
             pass
