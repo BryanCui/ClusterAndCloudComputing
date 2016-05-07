@@ -33,7 +33,7 @@ def main():
             db.save(doc)
             updateCount += 1
     print("%d documents have been deleted" % (deleteCount))
-    print("%d documents have been sentiment analysed" % ()
+    print("%d documents have been sentiment analysed" % (updateCount))
 
 if __name__ == "__main__":
     main()
