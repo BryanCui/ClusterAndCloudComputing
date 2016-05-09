@@ -111,9 +111,13 @@ class Chart:
         self.title = title
         self.chartType = chartType
         self.data = data
+        names = []
+        for k in data:
+            names.append(k['name'])
+        self.names = names
 
     def reprJSON(self):
-        return {'title':self.title, 'type':self.chartType, 'data':self.data}
+        return {'title':self.title, 'type':self.chartType, 'names':self.names, 'data':self.data}
 
 class Scenario:
     def __init__(self, title):
