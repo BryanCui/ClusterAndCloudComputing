@@ -90,6 +90,9 @@ class ScenarioController(Controller):
         
         self.server.send_response(200)
         self.server.send_header('Content-Type', 'application/json')
+        self.server.send_header("Access-Control-Allow-Origin","*")
+        self.server.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+        self.server.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
         self.server.end_headers()
         self.server.wfile.write(result)
 
@@ -99,9 +102,18 @@ class ScenarioController(Controller):
             f = urllib2.urlopen(getURL(query))
             result = json.loads(f.read())
             f.close()
+            
+            result = {k['key'][1]:k['value'] for k in result['rows']}
+            total = float(sum(result.values()))
+            minorities = {k:v for k, v in result.iteritems() if v/total < 0.001}
+            majorities = {k:v for k, v in result.iteritems() if v/total >= 0.001}
+            other = sum(minorities.values())
+            majorities['other'] = other
+
             data = []
-            for row in result['rows']:
-                data.append({'name': row['key'][1], 'value': row['value']})
+            for k, v in majorities.iteritems():
+                data.append({'name': k, 'value': v})
+
             scenario.addChart(Chart(query['title'], query['type'], data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
 
