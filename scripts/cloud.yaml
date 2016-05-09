@@ -1,0 +1,25 @@
+---
+- hosts: web
+  sudo: yes
+  tasks:
+      - name: install Git
+        apt: pkg=git state=latest
+      - name: install python-software-properties
+        raw: apt-get install python-software-properties -y
+      - name: install software-properties-common
+        raw: apt-get install software-properties-common -y
+      - name: repository ppa:couchdb/stable
+        raw: add-apt-repository ppa:couchdb/stable -y
+      - name: update packages
+        raw: apt-get update -y
+      - name: remove old
+        raw: apt-get remove couchdb couchdb-bin couchdb-common -yf
+      - name: install couchdb
+        apt: pkg=couchdb force=yes
+      - name: stop couchDB
+        raw: sudo stop couchdb
+      - name: start couchdb
+        raw: sudo start couchdb
+      - name: create database
+        shell: curl -X PUT http://127.0.0.1:5984/test_database
+        
