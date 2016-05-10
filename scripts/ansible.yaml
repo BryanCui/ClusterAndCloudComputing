@@ -3,15 +3,29 @@
   sudo: yes
   tasks:
       - name: get auth keys
-        shell: wget https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/authorized_keys
+        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/authorized_keys dest=./authorized_keys
       - name: add auth keys
-        shell: mv ./authorized_keys ./.ssh/
+        shell: cp ./authorized_keys ./.ssh/
       - name: get hosts file
-        shell: wget https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitter.py
+        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitter.py dest=./twitter.py
       - name: get conf file
-        shell: wget https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitterApp.conf
-      - name: update repository
-        shell: apt-get update
+        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitterApp.conf dest=./twitterApp.conf
+      - name: get hosts file
+        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/hosts dest=./hosts
+      - name: get service file
+        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/harvest-twitter.conf dest=./harvest-twitter.conf
+      - name: add service
+        shell: cp ./harvest-twitter.conf /etc/init/
+      # - name: update repository
+      #   shell: apt-get update
       - name: install Git
-        apt: pkg=git state=latest force=yes
+        apt: pkg=git state=latest update_cache=yes
+      - name: install pip
+        apt: pkg=python-pip state=latest update_cache=yes
+      - name: pip install tweepy
+        pip: name=tweepy
+      - name: pip install couchdb
+        pip: name=couchdb
+      - name: start harvest service
+        shell: start harvest-twitter
         

@@ -8,5 +8,6 @@ swift upload twitter_container authorized_keys
 swift upload twitter_container hosts
 swift upload twitter_container twitter.py
 swift upload twitter_container twitterApp.conf
+swift upload twitter_container harvest-twitter.conf
 
 ansible-playbook ansible.yaml -i hosts -u ubuntu --private-key=~/.ssh/id_rsa
