@@ -1,4 +1,4 @@
-import BaseHTTPServer, re, urllib, urllib2, os, json
+import BaseHTTPServer, re, urllib, urllib2, os, json, operator
 
 PORT = 8080
 DB_ADDR = 'http://115.146.89.147'
@@ -11,16 +11,20 @@ RouteArray = [
 ]
 
 ScenarioArray = [
-    {},
+    {
+        'action':'sourceSentiment',
+        'title':'Sentiment stats from top 5 Tweet sources',
+        'query':{'top':5, 'designName':'love_hate', 'viewName':'general', 'type':'bar', 'args':{'group':'true', 'group_level':'2'}},
+    },
     {
         'action':'regionLang',
         'title':'Language distribution in different Australian cities',
         'queries':[
-            {'title': 'Language distribution in Adelaide', 'designName': 'region_lang', 'viewName': 'general', 'type': 'pie', 'args': {'group':'true', 'group_level':'2', 'startkey':'["Adelaide"]', 'endkey':'["Adelaide", {}]'}},
-            {'title': 'Language distribution in Brisbane', 'designName': 'region_lang', 'viewName': 'general', 'type': 'pie', 'args': {'group':'true', 'group_level':'2', 'startkey':'["Brisbane"]', 'endkey':'["Brisbane", {}]'}},
-            {'title': 'Language distribution in Melbourne', 'designName': 'region_lang', 'viewName': 'general', 'type': 'pie', 'args': {'group':'true', 'group_level':'2', 'startkey':'["Melbourne"]', 'endkey':'["Melbourne", {}]'}},
-            {'title': 'Language distribution in Perth', 'designName': 'region_lang', 'viewName': 'general', 'type': 'pie', 'args': {'group':'true', 'group_level':'2', 'startkey':'["Perth"]', 'endkey':'["Perth (WA)", {}]'}},
-            {'title': 'Language distribution in Sydney', 'designName': 'region_lang', 'viewName': 'general', 'type': 'pie', 'args': {'group':'true', 'group_level':'2', 'startkey':'["Sydney"]', 'endkey':'["Sydney", {}]'}}]
+            {'title':'Language distribution in Adelaide', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Adelaide"]', 'endkey':'["Adelaide", {}]'}},
+            {'title':'Language distribution in Brisbane', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Brisbane"]', 'endkey':'["Brisbane", {}]'}},
+            {'title':'Language distribution in Melbourne', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Melbourne"]', 'endkey':'["Melbourne", {}]'}},
+            {'title':'Language distribution in Perth', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Perth"]', 'endkey':'["Perth (WA)", {}]'}},
+            {'title':'Language distribution in Sydney', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Sydney"]', 'endkey':'["Sydney", {}]'}}]
     }
 ]
 
@@ -96,27 +100,41 @@ class ScenarioController(Controller):
         self.server.end_headers()
         self.server.wfile.write(result)
 
+    def sourceSentiment(self, s):
+        scenario = Scenario(s['title'])
+        f = urllib2.urlopen(getURL(s['query']))
+        result = json.loads(f.read())
+        f.close()
+        sum_dict = {}
+        for k in result['rows']:
+            sum_dict[k['key'][0]] = sum_dict.get(k['key'][0], 0) + k['value']
+        top = min(s['query']['top'], len(sum_dict.keys()))
+        topSources = [k for k, v in sorted(sum_dict.items(), key=operator.itemgetter(1), reverse=True)[:top]]
+        for source in topSources:
+            data = []
+            for row in result['rows']:
+                if source in row['key']:
+                    data.append({'name':row['key'][1], 'value':row['value']})
+            scenario.addChart(Chart(source, s['query']['type'], data))
+        return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
+
     def regionLang(self, s):
         scenario = Scenario(s['title'])
         for query in s['queries']:
             f = urllib2.urlopen(getURL(query))
             result = json.loads(f.read())
             f.close()
-            
             result = {k['key'][1]:k['value'] for k in result['rows']}
             total = float(sum(result.values()))
             minorities = {k:v for k, v in result.iteritems() if v/total < 0.001}
             majorities = {k:v for k, v in result.iteritems() if v/total >= 0.001}
             other = sum(minorities.values())
             majorities['other'] = other
-
             data = []
             for k, v in majorities.iteritems():
                 data.append({'name': k, 'value': v})
-
             scenario.addChart(Chart(query['title'], query['type'], data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
-
 
 class Chart:
     def __init__(self, title, chartType, data):
