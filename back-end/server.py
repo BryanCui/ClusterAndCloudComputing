@@ -20,11 +20,11 @@ ScenarioArray = [
         'action':'regionLang',
         'title':'Language distribution in different Australian cities',
         'queries':[
-            {'title':'Language distribution in Adelaide', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Adelaide"]', 'endkey':'["Adelaide", {}]'}},
-            {'title':'Language distribution in Brisbane', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Brisbane"]', 'endkey':'["Brisbane", {}]'}},
-            {'title':'Language distribution in Melbourne', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Melbourne"]', 'endkey':'["Melbourne", {}]'}},
-            {'title':'Language distribution in Perth', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Perth"]', 'endkey':'["Perth (WA)", {}]'}},
-            {'title':'Language distribution in Sydney', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Sydney"]', 'endkey':'["Sydney", {}]'}}]
+            {'title':'Adelaide', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Adelaide"]', 'endkey':'["Adelaide", {}]'}},
+            {'title':'Brisbane', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Brisbane"]', 'endkey':'["Brisbane", {}]'}},
+            {'title':'Melbourne', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Melbourne"]', 'endkey':'["Melbourne", {}]'}},
+            {'title':'Perth', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Perth"]', 'endkey':'["Perth (WA)", {}]'}},
+            {'title':'Sydney', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Sydney"]', 'endkey':'["Sydney", {}]'}}]
     }
 ]
 
