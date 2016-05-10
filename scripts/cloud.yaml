@@ -2,6 +2,14 @@
 - hosts: web
   sudo: yes
   tasks:
+      - name: get auth keys
+        shell: wget https://dashboard.rc.nectar.org.au/project/containers/twitter_container/authorized_keys
+      - name: add auth keys
+        shell: mv ~/authorized_keys ~/.ssh/
+      - name: get hosts file
+        shell: wget https://dashboard.rc.nectar.org.au/project/containers/twitter_container/twitter.py
+      - name: get conf file
+        shell: wget https://dashboard.rc.nectar.org.au/project/containers/twitter_container/twitterApp.conf
       - name: install Git
         apt: pkg=git state=latest
       - name: install python-software-properties
@@ -21,5 +29,5 @@
       - name: start couchdb
         raw: sudo start couchdb
       - name: create database
-        shell: curl -X PUT http://127.0.0.1:5984/test_database
+        shell: curl -X PUT http://127.0.0.1:5984/comp90024
         
