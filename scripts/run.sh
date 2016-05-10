@@ -1,12 +1,18 @@
 echo "enter the number of instance: "
 read -r NUM_INSTANCE
 
-sudo pip install boto
-sudo pip install python-swiftclient
-sudo pip install ansible
+# sudo pip install boto
+# sudo pip install python-swiftclient
+# sudo pip install ansible
+# sudo pip install --upgrade pbr
+# sudo pip install python-keystoneclient
+# sudo pip install markupsafe
+# sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+# sudo pip install cryptography
 
 python boto_script.py $NUM_INSTANCE
-source CCC-2016-5-openrc.sh
+
+source ./CCC-2016-5-openrc.sh
 #nova list
 swift upload twitter_container authorized_keys
 swift upload twitter_container hosts
