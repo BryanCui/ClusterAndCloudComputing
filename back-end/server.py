@@ -25,7 +25,13 @@ ScenarioArray = [
             {'title':'Melbourne', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Melbourne"]', 'endkey':'["Melbourne", {}]'}},
             {'title':'Perth', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Perth"]', 'endkey':'["Perth (WA)", {}]'}},
             {'title':'Sydney', 'designName':'region_lang', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2', 'startkey':'["Sydney"]', 'endkey':'["Sydney", {}]'}}]
+    },
+    {
+        'action':'timeLength',
+        'title':'Tweet length in accordance with local time',
+        'query':{'designName':'time_length', 'viewName':'general', 'type':'line', 'args':{'group':'true', 'group_level':'2'}}     
     }
+
 ]
 
 class Controller(object):
@@ -135,6 +141,26 @@ class ScenarioController(Controller):
                 data.append({'name': k, 'value': v})
             scenario.addChart(Chart(query['title'], query['type'], data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
+
+    def timeLength(self, s):
+        scenario = Scenario(s['title'])
+        f = urllib2.urlopen(getURL(s['query']))
+        result = json.loads(f.read())['rows']
+        f.close()
+        tmp_result = [{row['key'][1]:(row['key'][0],row['value'][2])} for row in result]
+        result = {}
+        for item in tmp_result:
+            key = item.keys()[0]
+            arr = result.get(key, [])
+            arr.append({item.values()[0][0]:item.values()[0][1]})
+            result[key] = arr
+        for city in result.keys():
+            data = []
+            for row in result[city]:
+                data.append({'name':row.keys()[0], 'value':row.values()[0]})
+            scenario.addChart(Chart(city, s['query']['type'],data))
+        return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
+
 
 class Chart:
     def __init__(self, title, chartType, data):
