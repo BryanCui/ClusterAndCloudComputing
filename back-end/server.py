@@ -154,13 +154,24 @@ class ScenarioController(Controller):
             arr = result.get(key, [])
             arr.append({item.values()[0][0]:item.values()[0][1]})
             result[key] = arr
+        data = {}
+        data['type'] = s['query']['type']
+        data['values'] = []
+        x_label = []
         for city in result.keys():
-            data = []
+            d = {}
+            d['name'] = city
+            values = []
             for row in result[city]:
-                data.append({'name':row.keys()[0], 'value':row.values()[0]})
-            scenario.addChart(Chart(city, s['query']['type'],data))
+                values.append(row.values()[0])
+            d['values'] = values
+            data['values'].append(d)
+                # data.append({'name':row.keys()[0], 'value':row.values()[0]})
+            x_label = [row.keys()[0] for row in result[city]]
+        data['x_label'] = x_label
+        scenario.addChart(data)
+        # scenario.addChart(Chart(city, s['query']['type'],data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
-
 
 class Chart:
     def __init__(self, title, chartType, data):
