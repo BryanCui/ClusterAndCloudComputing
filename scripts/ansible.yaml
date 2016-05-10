@@ -10,6 +10,8 @@
         shell: wget https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitter.py
       - name: get conf file
         shell: wget https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitterApp.conf
+      - name: update repository
+        shell: apt-get update
       - name: install Git
-        shell: apt-get install git
+        apt: pkg=git state=latest force=yes
         
