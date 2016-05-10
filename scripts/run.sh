@@ -1,6 +1,10 @@
 echo "enter the number of instance: "
 read -r NUM_INSTANCE
 
+sudo pip install boto
+sudo pip install python-swiftclient
+sudo pip install ansible
+
 python boto_script.py $NUM_INSTANCE
 source CCC-2016-5-openrc.sh
 #nova list
