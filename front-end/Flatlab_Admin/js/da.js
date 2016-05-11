@@ -1,4 +1,4 @@
- $.getJSON("http://115.146.89.147:8080/1",function(result){
+ $.getJSON("http://115.146.89.147:8080/scenarios/1",function(result){
         var charts = result.charts;
         var tw_ins=0;
         var tw_web=0;
