@@ -3,6 +3,7 @@
         var charts = result.charts;
             // initialize the chart
         var myChart = echarts.init(document.getElementById("uncle"));
+        myChart.showLoading();
         target = [];
         values = charts[0].values
         for (x in values){
@@ -25,9 +26,8 @@
             target.push(j)
         };
         option = {
-            title : {
-                text: result.tilte,
-                x:'center'
+            title: {
+                text: result.title,
             },
             tooltip: {
                 trigger: 'axis'
@@ -59,5 +59,6 @@
             },
             series: target
         };
+        myChart.hideLoading();
         myChart.setOption(option);
     });
