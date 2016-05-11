@@ -36,7 +36,13 @@
             toolbox: {
                 show: true,
                 feature: {
-                    dataZoom: {},
+                    dataZoom: {
+                        show: true,
+                        title: {
+                            dataZoom: 'zoom in',
+                            dataZoomReset: 'zoom out'
+                        }
+                    },
                     dataView: {readOnly: false},
                     magicType: {type: ['line', 'bar']},
                     restore: {},
