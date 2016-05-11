@@ -6,8 +6,8 @@ DB_PORT = '5984'
 DB_NAME = 'aus_tweets'
 
 RouteArray = [
-    {'regexp': r'^/$', 'controller': 'HomeController', 'action': 'indexAction'},
-    {'regexp': r'^/\d+$', 'controller': 'ScenarioController', 'action': 'contentAction'},
+    {'regexp': r'^/scenarios/?$', 'controller': 'ScenarioController', 'action': 'indexAction'},
+    {'regexp': r'^/scenarios/\d+/?$', 'controller': 'ScenarioController', 'action': 'contentAction'},
 ]
 
 ScenarioArray = [
@@ -38,12 +38,16 @@ ScenarioArray = [
             {'title':'number of Tweets', 'designName':'Employment', 'viewName':'Multiple%20cities', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
             {'title':'number of sentiment Tweets', 'designName':'Employment', 'viewName':'Multiple%20cities%20Sentiment', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
             {'title':'number of local positive Tweets', 'designName':'Employment', 'viewName':'Multiple_cities_location_match_positive', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
-            {'title':'local positive rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'local_positive_rate', 'type':'bar', 'args':{}},
-            {'title':'positive rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'positive_rate', 'type':'bar', 'args':{}},
+            {'title':'local positive rate', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'local_positive_rate', 'type':'bar', 'args':{}},
+            {'title':'positive rate', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'positive_rate', 'type':'bar', 'args':{}},
             {'title':'unemployment rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'unemployment_rate', 'type':'bar', 'args':{}}
         ]
+    },
+    {
+        'action':'friendSentiment',
+        'title':'Tweet sentiment in accordance with friends number',
+        'query':{'designName':'friends_senti', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2'}}
     }
-
 ]
 
 class Controller(object):
@@ -84,22 +88,21 @@ class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         self.__router.route(self.path)
 
-class HomeController(Controller):
-    def __init__(self, server):
-        Controller.__init__(self, server)
-
-    def indexAction(self):
-        self.server.send_response(200)
-        self.server.send_header('Content-Type', 'application/json')
-        self.server.end_headers()
-        self.server.wfile.write('{"Content": ["hello", "world"]}')
-
 class ScenarioController(Controller):
     def __init__(self, server):
         Controller.__init__(self, server)
 
+    def responseJSON(self, content):
+        self.server.send_response(200)
+        self.server.send_header('Content-Type', 'application/json')
+        self.server.send_header("Access-Control-Allow-Origin","*")
+        self.server.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+        self.server.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+        self.server.end_headers()
+        self.server.wfile.write(content)
+
     def contentAction(self):
-        m = re.match(r'^/(\d+)$', self.server.path)
+        m = re.match(r'^/scenarios/(\d+)/?$', self.server.path)
         index = int(m.group(1))
         if index > len(ScenarioArray) or index < 0:
             self.server.send_response(404)
@@ -109,28 +112,26 @@ class ScenarioController(Controller):
         scenario = ScenarioArray[index-1]
         func = ScenarioController.__dict__[scenario['action']]
         result = apply(func, (self, scenario))
+        self.responseJSON(result)
         
-        self.server.send_response(200)
-        self.server.send_header('Content-Type', 'application/json')
-        self.server.send_header("Access-Control-Allow-Origin","*")
-        self.server.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
-        self.server.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-        self.server.end_headers()
-        self.server.wfile.write(result)
+
+    def indexAction(self):
+        content = {'content':[1,2,3,4,5]}
+        self.responseJSON(json.dumps(content))
 
     def sourceSentiment(self, s):
         scenario = Scenario(s['title'])
         f = urllib2.urlopen(getURL(s['query']))
-        result = json.loads(f.read())
+        result = json.loads(f.read())['rows']
         f.close()
         sum_dict = {}
-        for k in result['rows']:
+        for k in result:
             sum_dict[k['key'][0]] = sum_dict.get(k['key'][0], 0) + k['value']
         top = min(s['query']['top'], len(sum_dict.keys()))
         topSources = [k for k, v in sorted(sum_dict.items(), key=operator.itemgetter(1), reverse=True)[:top]]
         for source in topSources:
             data = []
-            for row in result['rows']:
+            for row in result:
                 if source in row['key']:
                     data.append({'name':row['key'][1], 'value':row['value']})
             scenario.addChart(PieChart(source, data))
@@ -140,9 +141,9 @@ class ScenarioController(Controller):
         scenario = Scenario(s['title'])
         for query in s['queries']:
             f = urllib2.urlopen(getURL(query))
-            result = json.loads(f.read())
+            result = json.loads(f.read())['rows']
             f.close()
-            result = {k['key'][1]:k['value'] for k in result['rows']}
+            result = {k['key'][1]:k['value'] for k in result}
             total = float(sum(result.values()))
             minorities = {k:v for k, v in result.iteritems() if v/total < 0.001}
             majorities = {k:v for k, v in result.iteritems() if v/total >= 0.001}
@@ -196,6 +197,23 @@ class ScenarioController(Controller):
                 values['values'].append(item['value'])
             data = {'x_label': x_label, 'values':values}
             scenario.addChart(BarChart(query['title'], data))
+        return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
+
+    def friendSentiment(self, s):
+        scenario = Scenario(s['title'])
+        f = urllib2.urlopen(getURL(s['query']))
+        result = json.loads(f.read())['rows']
+        f.close()
+        charts = {}
+        for item in result:
+            key = item['key'][0]
+            senti = item['key'][1]
+            count = item['value']
+            data = charts.get(key, [])
+            data.append({'name':senti, 'value':count})
+            charts[key] = data
+        for k in sorted(charts.keys()):
+            scenario.addChart(PieChart(k, charts[k]))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
 
 class PieChart:
