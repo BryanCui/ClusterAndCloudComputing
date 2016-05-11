@@ -6,8 +6,8 @@ DB_PORT = '5984'
 DB_NAME = 'aus_tweets'
 
 RouteArray = [
-    {'regexp': r'^/$', 'controller': 'HomeController', 'action': 'indexAction'},
-    {'regexp': r'^/\d+$', 'controller': 'ScenarioController', 'action': 'contentAction'},
+    {'regexp': r'^/scenarios/?$', 'controller': 'ScenarioController', 'action': 'indexAction'},
+    {'regexp': r'^/scenarios/\d+/?$', 'controller': 'ScenarioController', 'action': 'contentAction'},
 ]
 
 ScenarioArray = [
@@ -88,22 +88,21 @@ class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         self.__router.route(self.path)
 
-class HomeController(Controller):
-    def __init__(self, server):
-        Controller.__init__(self, server)
-
-    def indexAction(self):
-        self.server.send_response(200)
-        self.server.send_header('Content-Type', 'application/json')
-        self.server.end_headers()
-        self.server.wfile.write('{"Content": ["hello", "world"]}')
-
 class ScenarioController(Controller):
     def __init__(self, server):
         Controller.__init__(self, server)
 
+    def responseJSON(self, content):
+        self.server.send_response(200)
+        self.server.send_header('Content-Type', 'application/json')
+        self.server.send_header("Access-Control-Allow-Origin","*")
+        self.server.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+        self.server.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+        self.server.end_headers()
+        self.server.wfile.write(content)
+
     def contentAction(self):
-        m = re.match(r'^/(\d+)$', self.server.path)
+        m = re.match(r'^/scenarios/(\d+)/?$', self.server.path)
         index = int(m.group(1))
         if index > len(ScenarioArray) or index < 0:
             self.server.send_response(404)
@@ -113,14 +112,12 @@ class ScenarioController(Controller):
         scenario = ScenarioArray[index-1]
         func = ScenarioController.__dict__[scenario['action']]
         result = apply(func, (self, scenario))
+        self.responseJSON(result)
         
-        self.server.send_response(200)
-        self.server.send_header('Content-Type', 'application/json')
-        self.server.send_header("Access-Control-Allow-Origin","*")
-        self.server.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
-        self.server.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-        self.server.end_headers()
-        self.server.wfile.write(result)
+
+    def indexAction(self):
+        content = {'content':[1,2,3,4,5]}
+        self.responseJSON(json.dumps(content))
 
     def sourceSentiment(self, s):
         scenario = Scenario(s['title'])
