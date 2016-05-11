@@ -2,11 +2,9 @@
 - hosts: web
   sudo: yes
   tasks:
-      - name: get auth keys
-        get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/authorized_keys dest=./authorized_keys
-      - name: add auth keys
-        shell: cp ./authorized_keys ./.ssh/
-      - name: get hosts file
+      # - name: get auth keys
+      #   get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/authorized_keys dest=./.ssh/authorized_keys
+      - name: get twitter harvest file
         get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitter.py dest=./twitter.py
       - name: get conf file
         get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/twitterApp.conf dest=./twitterApp.conf
