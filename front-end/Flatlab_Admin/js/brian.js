@@ -1,4 +1,4 @@
- $.getJSON("http://115.146.89.147:8080/scenarios/4",function(result){
+ $.getJSON("http://127.0.0.1:8080/scenarios/4",function(result){
         console.log(result);
         var charts = result.charts;
         var colors = ["#b37c57", "#0a7e8c", "#53802d", "#f6546a", "#00ff66","#ffff00"]

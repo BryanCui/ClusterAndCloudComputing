@@ -2,7 +2,7 @@ var myChart = echarts.init(document.getElementById(0));
 var lastChart = echarts.init(document.getElementById(1));
 myChart.showLoading();
 lastChart.showLoading();
-$.getJSON("http://115.146.89.147:8080/scenarios/5",function(result){
+$.getJSON("http://127.0.0.1:8080/scenarios/5",function(result){
         var charts = result.charts;
         var value = parseInt(charts[4].data[0].value)*1.2
         charts[4].data[0].value = value
