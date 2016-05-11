@@ -45,7 +45,7 @@ count_ins = 0
 while count_ins < ins_num:
   try:
       print("trying to create a new instance")
-      res = connection.run_instances('ami-00003801',key_name='ubuntu',security_groups=['default','open'],instance_type='m1.medium',placement='melbourne-qh2')
+      res = connection.run_instances('ami-00003801',key_name='main',security_groups=['default','open'],instance_type='m1.medium',placement='melbourne-qh2')
       instance = res.instances[0]
   except Exception as e:
       if e.status == 413:
