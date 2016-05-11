@@ -1,5 +1,11 @@
 echo "enter the number of instance: "
 read -r NUM_INSTANCE
+if (( NUM_INSTANCE > 0)); then
+	continue
+else
+	printf "must enter a number and should be greater than 0\n"
+	exit
+fi
 
 # sudo pip install boto
 # sudo pip install python-swiftclient
