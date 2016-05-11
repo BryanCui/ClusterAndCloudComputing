@@ -14,7 +14,7 @@ ScenarioArray = [
     {
         'action':'sourceSentiment',
         'title':'Sentiment stats from top 5 Tweet sources',
-        'query':{'top':5, 'designName':'love_hate', 'viewName':'general', 'type':'bar', 'args':{'group':'true', 'group_level':'2'}},
+        'query':{'top':5, 'designName':'love_hate', 'viewName':'general', 'type':'pie', 'args':{'group':'true', 'group_level':'2'}},
     },
     {
         'action':'regionLang',
@@ -30,6 +30,18 @@ ScenarioArray = [
         'action':'timeLength',
         'title':'Tweet length in accordance with local time',
         'query':{'designName':'time_length', 'viewName':'general', 'type':'line', 'args':{'group':'true', 'group_level':'2'}}     
+    },
+    {
+        'action':'employment',
+        'title':'Tweets sentiment in accordance with unemployment rate',
+        'queries':[
+            {'title':'number of Tweets', 'designName':'Employment', 'viewName':'Multiple%20cities', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
+            {'title':'number of sentiment Tweets', 'designName':'Employment', 'viewName':'Multiple%20cities%20Sentiment', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
+            {'title':'number of local positive Tweets', 'designName':'Employment', 'viewName':'Multiple_cities_location_match_positive', 'type':'bar', 'args':{'group':'true', 'group_level':'1'}},
+            {'title':'local positive rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'local_positive_rate', 'type':'bar', 'args':{}},
+            {'title':'positive rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'positive_rate', 'type':'bar', 'args':{}},
+            {'title':'unemployment rate from Aurin', 'dbName':'do_not_delete', 'designName':'cty', 'viewName':'unemployment_rate', 'type':'bar', 'args':{}}
+        ]
     }
 
 ]
@@ -106,7 +118,7 @@ class ScenarioController(Controller):
         self.server.end_headers()
         self.server.wfile.write(result)
 
-    def sourceSentiment(self, s):
+    def sourceSentiment(self, s, scenario):
         scenario = Scenario(s['title'])
         f = urllib2.urlopen(getURL(s['query']))
         result = json.loads(f.read())
@@ -121,7 +133,7 @@ class ScenarioController(Controller):
             for row in result['rows']:
                 if source in row['key']:
                     data.append({'name':row['key'][1], 'value':row['value']})
-            scenario.addChart(Chart(source, s['query']['type'], data))
+            scenario.addChart(PieChart(source, data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
 
     def regionLang(self, s):
@@ -139,7 +151,7 @@ class ScenarioController(Controller):
             data = []
             for k, v in majorities.iteritems():
                 data.append({'name': k, 'value': v})
-            scenario.addChart(Chart(query['title'], query['type'], data))
+            scenario.addChart(PieChart(query['title'], data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
 
     def timeLength(self, s):
@@ -155,7 +167,6 @@ class ScenarioController(Controller):
             arr.append({item.values()[0][0]:item.values()[0][1]})
             result[key] = arr
         data = {}
-        data['type'] = s['query']['type']
         data['values'] = []
         x_label = []
         for city in result.keys():
@@ -163,20 +174,34 @@ class ScenarioController(Controller):
             d['name'] = city
             values = []
             for row in result[city]:
-                values.append(row.values()[0])
+                values.append(float("%.1f"%row.values()[0]))
             d['values'] = values
             data['values'].append(d)
-                # data.append({'name':row.keys()[0], 'value':row.values()[0]})
             x_label = [row.keys()[0] for row in result[city]]
         data['x_label'] = x_label
-        scenario.addChart(data)
-        # scenario.addChart(Chart(city, s['query']['type'],data))
+        scenario.addChart(LineChart(s['title'],data))
         return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
 
-class Chart:
-    def __init__(self, title, chartType, data):
+    def employment(self, s):
+        scenario = Scenario(s['title'])
+        for query in s['queries']:
+            f = urllib2.urlopen(getURL(query))
+            result = json.loads(f.read())['rows']
+            f.close()
+            print(result)
+            x_label = []
+            values = {'name':query['title'], 'values':[]}
+            for item in result:
+                x_label.append(item['key'])
+                values['values'].append(item['value'])
+            data = {'x_label': x_label, 'values':values}
+            scenario.addChart(BarChart(query['title'], data))
+        return json.dumps(scenario.reprJSON(), cls=JSONEncoder)
+
+class PieChart:
+    def __init__(self, title, data):
         self.title = title
-        self.chartType = chartType
+        self.chartType = "pie"
         self.data = data
         names = []
         for k in data:
@@ -186,6 +211,21 @@ class Chart:
     def reprJSON(self):
         return {'title':self.title, 'type':self.chartType, 'names':self.names, 'data':self.data}
 
+class LineChart:
+    def __init__(self, title, data):
+        self.title = title
+        self.chartType = "line"
+        self.x_label = data['x_label']
+        self.values = data['values']
+
+    def reprJSON(self):
+        return {'title':self.title, 'type':self.chartType, 'x_label':self.x_label, 'values':self.values}
+
+class BarChart(LineChart):
+    def __init__(self, title, data):
+        LineChart.__init__(self, title, data)
+        self.chartType = "bar"
+        
 class Scenario:
     def __init__(self, title):
         self.title = title
@@ -206,7 +246,8 @@ class JSONEncoder(json.JSONEncoder):
 
 
 def getURL(queryInfo):
-    url = os.path.join(DB_ADDR+':'+DB_PORT, DB_NAME, '_design', queryInfo['designName'], '_view', queryInfo['viewName'])
+    db_name = queryInfo.get('dbName', DB_NAME)
+    url = os.path.join(DB_ADDR+':'+DB_PORT, db_name, '_design', queryInfo['designName'], '_view', queryInfo['viewName'])
     params = urllib.urlencode(queryInfo['args'])
     return '%s?%s' % (url, params)
 
