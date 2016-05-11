@@ -188,7 +188,7 @@ class ScenarioController(Controller):
             f = urllib2.urlopen(getURL(query))
             result = json.loads(f.read())['rows']
             f.close()
-            shorten = {'Adelaide':'Ade', 'Brisbane':'Bris', 'Gold Costa':'GC', 'Melbourne':'Melb', 'Perth':'Perth', 'Sydney':'Syd'}
+            shorten = {'Adelaide':'Ade', 'Brisbane':'Bris', 'Gold Coast':'GC', 'Melbourne':'Melb', 'Perth':'Perth', 'Sydney':'Syd'}
             x_label = []
             values = {'name':query['title'], 'values':[]}
             for item in result:
