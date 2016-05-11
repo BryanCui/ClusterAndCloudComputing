@@ -118,7 +118,7 @@ class ScenarioController(Controller):
         self.server.end_headers()
         self.server.wfile.write(result)
 
-    def sourceSentiment(self, s, scenario):
+    def sourceSentiment(self, s):
         scenario = Scenario(s['title'])
         f = urllib2.urlopen(getURL(s['query']))
         result = json.loads(f.read())
