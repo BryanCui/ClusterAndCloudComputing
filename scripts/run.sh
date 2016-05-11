@@ -27,5 +27,5 @@ swift upload twitter_container twitterApp.conf
 swift upload twitter_container harvest-twitter.conf
 
 export ANSIBLE_HOST_KEY_CHECKING=False
-sleep 15
+sleep 20
 ansible-playbook ansible.yaml -i hosts -u ubuntu --private-key=~/.ssh/id_rsa
