@@ -1,5 +1,11 @@
 echo "enter the number of instance: "
 read -r NUM_INSTANCE
+if (( NUM_INSTANCE > 0)); then
+	continue
+else
+	printf "must enter a number and should be greater than 0\n"
+	exit
+fi
 
 # sudo pip install boto
 # sudo pip install python-swiftclient
@@ -21,4 +27,5 @@ swift upload twitter_container twitterApp.conf
 swift upload twitter_container harvest-twitter.conf
 
 export ANSIBLE_HOST_KEY_CHECKING=False
+sleep 15
 ansible-playbook ansible.yaml -i hosts -u ubuntu --private-key=~/.ssh/id_rsa
