@@ -188,11 +188,11 @@ class ScenarioController(Controller):
             f = urllib2.urlopen(getURL(query))
             result = json.loads(f.read())['rows']
             f.close()
-            print(result)
+            shorten = {'Adelaide':'Ade', 'Brisbane':'Bris', 'Gold Costa':'GC', 'Melbourne':'Melb', 'Perth':'Perth', 'Sydney':'Syd'}
             x_label = []
             values = {'name':query['title'], 'values':[]}
             for item in result:
-                x_label.append(item['key'])
+                x_label.append(shorten.get(item['key'], item['key']))
                 values['values'].append(item['value'])
             data = {'x_label': x_label, 'values':values}
             scenario.addChart(BarChart(query['title'], data))
