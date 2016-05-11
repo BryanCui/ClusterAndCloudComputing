@@ -16,10 +16,10 @@
         get_url: url=https://swift.rc.nectar.org.au:8888/v1/AUTH_75dfabaad7cd45c4be5e65ee9518a80a/twitter_container/harvest-twitter.conf dest=./harvest-twitter.conf
       - name: add service
         shell: cp ./harvest-twitter.conf /etc/init/
-      # - name: update repository
-      #   shell: apt-get update
+      - name: update repository
+        apt: update_cache=yes
       - name: install Git
-        apt: pkg=git state=latest update_cache=yes
+        apt: pkg=git state=latest
       - name: install pip
         apt: pkg=python-pip state=latest update_cache=yes
       - name: pip install tweepy
